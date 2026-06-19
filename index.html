@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#EEF2FA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Puzzle Lab">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Puzzle Lab</title>
+<style>
+:root{
+  --bg:#EEF2FA;--card:#FFFFFF;--ink:#16263B;--dim:#5E708A;--faint:#90A0B5;
+  --line:#E4EAF3;--line-2:#D6DEEC;--blue:#2563EB;--shadow:0 1px 2px rgba(20,40,80,.05),0 8px 24px rgba(20,40,80,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);min-height:100vh;
+  font-family:ui-rounded,"SF Pro Rounded",-apple-system,"Segoe UI",system-ui,Roboto,sans-serif;
+  padding:max(20px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom));}
+.wrap{max-width:480px;margin:0 auto}
+.head{display:flex;align-items:center;gap:13px;margin:8px 2px 22px}
+.mark{width:52px;height:52px;border-radius:16px;flex:none;box-shadow:var(--shadow);
+  background:linear-gradient(140deg,#3B4DD8,#15B8A6);display:flex;align-items:center;justify-content:center}
+.mark svg{width:30px;height:30px}
+.head h1{font-size:25px;font-weight:800;letter-spacing:-.02em}
+.head p{font-size:12.5px;color:var(--faint);font-weight:600;margin-top:2px;letter-spacing:.01em}
+
+.lead{font-size:13px;color:var(--dim);font-weight:600;margin:0 4px 12px;letter-spacing:.06em;text-transform:uppercase}
+
+.games{display:flex;flex-direction:column;gap:14px}
+.game{display:flex;align-items:center;gap:15px;background:var(--card);border:1px solid var(--line);
+  border-radius:20px;padding:15px;text-decoration:none;color:inherit;box-shadow:var(--shadow);transition:.15s}
+.game:active{transform:scale(.985)}
+.thumb{width:66px;height:66px;border-radius:16px;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.t-kashi{background:radial-gradient(circle at 30% 20%,#16294a,#0E1F38)}
+.t-steady{background:linear-gradient(150deg,#EAF0FE,#DDF3EC)}
+.thumb svg{width:42px;height:42px}
+.game .body{flex:1;min-width:0}
+.game .body h2{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.game .body p{font-size:12.5px;color:var(--dim);font-weight:600;line-height:1.35;margin-top:3px}
+.game .body .tag{display:inline-block;margin-top:7px;font-size:10.5px;font-weight:700;letter-spacing:.04em;
+  color:var(--blue);background:#EAF0FE;padding:3px 8px;border-radius:99px}
+.chev{color:var(--faint);flex:none}
+.chev svg{width:20px;height:20px}
+
+.soon{display:flex;align-items:center;gap:15px;border:1.5px dashed var(--line-2);border-radius:20px;
+  padding:15px;color:var(--faint)}
+.soon .thumb{background:#EEF2F9}
+.soon .thumb svg{width:30px;height:30px;color:#B6C2D6}
+.soon h2{font-size:15px;font-weight:700;color:var(--dim)}
+.soon p{font-size:12px;font-weight:600;margin-top:2px}
+
+.install{margin-top:24px;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:16px 17px;box-shadow:var(--shadow)}
+.install h3{font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.install h3 svg{width:18px;height:18px;color:var(--blue)}
+.install p{font-size:12.5px;color:var(--dim);font-weight:600;line-height:1.5}
+.install .share{display:inline-flex;width:18px;height:18px;vertical-align:-4px;margin:0 1px;color:var(--blue)}
+.install code{background:#EEF2F9;border-radius:6px;padding:1px 5px;font-size:11.5px}
+.foot{text-align:center;color:var(--faint);font-size:11px;font-weight:600;margin-top:22px;letter-spacing:.04em}
+.foot .dot{color:#10B981}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="mark">
+      <svg viewBox="0 0 100 100" fill="none"><path d="M50 6 L60 40 L94 50 L60 60 L50 94 L40 60 L6 50 L40 40 Z" fill="#FFFFFF"/><circle cx="50" cy="50" r="8" fill="#15B8A6"/></svg>
+    </div>
+    <div>
+      <h1>Puzzle Lab</h1>
+      <p>Offline logic puzzles for the commute</p>
+    </div>
+  </div>
+
+  <div class="lead">Puzzles</div>
+  <div class="games">
+
+    <a class="game" href="games/scale-up.html">
+      <div class="thumb" style="background:linear-gradient(150deg,#F1ECFE,#E7FBF3)">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#7C3AED" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 40V12"/><path d="M8 40h32"/>
+          <rect x="13" y="30" width="7" height="10" rx="1.5" fill="#F1ECFE"/>
+          <rect x="22.5" y="22" width="7" height="18" rx="1.5" fill="#F1ECFE"/>
+          <rect x="32" y="11" width="7" height="29" rx="1.5" stroke="#10B981" fill="#E7FBF3"/>
+        </svg>
+      </div>
+      <div class="body">
+        <h2>Scale-Up</h2>
+        <p>Predict the new operating point when you change speed or size. Affinity laws, centrifuge Sigma, residence time, similarity.</p>
+        <span class="tag">SCALING LAWS · 3 LEVELS</span>
+      </div>
+      <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="game" href="games/steady-state.html">
+      <div class="thumb t-steady">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#2563EB" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="7" y="9" width="13" height="9" rx="2.5"/><rect x="28" y="9" width="13" height="9" rx="2.5"/>
+          <rect x="17.5" y="30" width="13" height="9" rx="2.5" stroke="#10B981"/>
+          <path d="M14 18v4c0 3 10 4 10 8M34 18v4c0 3-10 4-10 8" stroke="#7C8AA3"/>
+        </svg>
+      </div>
+      <div class="body">
+        <h2>Steady State</h2>
+        <p>Balance a process flow sheet — what flows in must flow out. Conservation of mass, by mental arithmetic.</p>
+        <span class="tag">MASS BALANCE · 3 LEVELS</span>
+      </div>
+      <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="game" href="games/kashi.html">
+      <div class="thumb t-kashi">
+        <svg viewBox="0 0 100 100" fill="none"><path d="M50 6 L60 40 L94 50 L60 60 L50 94 L40 60 L6 50 L40 40 Z" fill="#E8A33D"/><path d="M50 24 L57 43 L76 50 L57 57 L50 76 L43 57 L24 50 L43 43 Z" fill="#2BB3A3"/></svg>
+      </div>
+      <div class="body">
+        <h2>Kashi</h2>
+        <p>A garden of numbers. Fill each glazed plot 1–n, and no two equal tiles may ever touch.</p>
+        <span class="tag">MOSAIC LOGIC · 3 SIZES</span>
+      </div>
+      <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <div class="soon">
+      <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+      <div><h2>More on the bench</h2><p>New puzzles drop in here.</p></div>
+    </div>
+  </div>
+
+  <div class="install">
+    <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Play offline on your phone</h3>
+    <p>In Safari, tap Share
+      <span class="share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M8 7l4-4 4 4"/><path d="M6 12H5a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2h-1"/></svg></span>
+      then <b>Add to Home Screen</b>. After that the Lab launches from its own icon and runs with no signal — perfect for the Tube.</p>
+  </div>
+
+  <div class="foot"><span class="dot">●</span> Works offline · v1</div>
+</div>
+
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
