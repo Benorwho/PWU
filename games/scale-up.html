@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#EEF2FA">
+<link rel="apple-touch-icon" href="../icons/icon-192.png">
+<title>Scale-Up</title>
+<style>
+:root{
+  --bg:#EEF2FA;--card:#FFFFFF;--ink:#16263B;--dim:#5E708A;--faint:#90A0B5;
+  --line:#E4EAF3;--line-2:#D6DEEC;
+  --vio:#7C3AED;--vio-soft:#F1ECFE;--vio-d:#5B21B6;
+  --emerald:#10B981;--emerald-soft:#E7FBF3;--amber:#F59E0B;--amber-soft:#FEF3E0;
+  --red:#EF4444;--red-soft:#FDEEEE;
+  --shadow:0 1px 2px rgba(20,40,80,.05),0 6px 18px rgba(20,40,80,.05);
+  --shadow-lg:0 10px 40px rgba(20,40,80,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);
+  font-family:ui-rounded,"SF Pro Rounded",-apple-system,"Segoe UI",system-ui,Roboto,sans-serif;
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100dvh;padding:0 0 max(12px,env(safe-area-inset-bottom));overscroll-behavior:none}
+.wrap{width:100%;max-width:480px;padding:0 14px;display:flex;flex-direction:column;flex:1;min-height:0}
+
+.bar{display:flex;align-items:center;gap:10px;padding:max(12px,env(safe-area-inset-top)) 0 8px}
+.back{width:38px;height:38px;border-radius:12px;border:1px solid var(--line-2);background:var(--card);
+  display:flex;align-items:center;justify-content:center;color:var(--ink);text-decoration:none;flex:none;box-shadow:var(--shadow)}
+.back svg{width:18px;height:18px}
+.title{flex:1}.title h1{font-size:19px;font-weight:800;letter-spacing:-.01em}
+.title .sub{font-size:11.5px;color:var(--faint);font-weight:700;letter-spacing:.02em;margin-top:1px}
+.iconbtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line-2);background:var(--card);
+  display:flex;align-items:center;justify-content:center;color:var(--dim);cursor:pointer;flex:none;box-shadow:var(--shadow);font-size:16px;font-weight:800}
+.iconbtn svg{width:18px;height:18px}
+
+.seg{display:flex;background:#E2E8F4;border-radius:13px;padding:3px;margin:4px 0 10px;gap:2px}
+.seg button{flex:1;border:none;background:transparent;color:var(--dim);font-family:inherit;
+  font-size:12.5px;font-weight:700;padding:8px 0;border-radius:10px;cursor:pointer;transition:.15s}
+.seg button.active{background:var(--card);color:var(--vio);box-shadow:var(--shadow)}
+
+.prog{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.track{flex:1;height:8px;background:#DDE5F1;border-radius:99px;overflow:hidden}
+.fill{height:100%;width:0;background:linear-gradient(90deg,#34D399,var(--emerald));border-radius:99px;transition:width .4s cubic-bezier(.2,.8,.2,1)}
+.pcount{font-size:12px;font-weight:800;color:var(--dim);min-width:96px;text-align:right;font-variant-numeric:tabular-nums}
+.pcount b{color:var(--emerald)}
+
+.board{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-bottom:8px;padding:2px}
+.stack{display:flex;flex-direction:column;gap:11px;padding:4px 2px 10px}
+.card{background:var(--card);border:1.6px solid var(--line-2);border-radius:18px;padding:14px;box-shadow:var(--shadow);transition:.2s}
+.card.done{border-color:var(--emerald);background:linear-gradient(180deg,#fff,var(--emerald-soft))}
+.hd{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.hd .ic{width:34px;height:34px;border-radius:11px;background:var(--vio-soft);color:var(--vio);display:flex;align-items:center;justify-content:center;flex:none}
+.card.done .hd .ic{background:#CFF6E7;color:var(--emerald)}
+.hd .ic svg{width:20px;height:20px}
+.hd .nm{font-size:15.5px;font-weight:800;flex:1;letter-spacing:-.01em}
+.hd .chk{width:22px;height:22px;border-radius:99px;background:var(--emerald);display:none;align-items:center;justify-content:center;flex:none}
+.card.done .hd .chk{display:flex;animation:pop .3s ease}
+.hd .chk svg{width:13px;height:13px;color:#fff}
+@keyframes pop{0%{transform:scale(0)}65%{transform:scale(1.25)}100%{transform:scale(1)}}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:13px}
+.chip{font-size:11.5px;font-weight:700;color:var(--ink);background:#EEF2F9;border:1px solid var(--line);
+  border-radius:99px;padding:5px 10px;font-variant-numeric:tabular-nums}
+.chip b{color:var(--vio);font-weight:800;margin-right:3px}
+.chip.alt{background:var(--amber-soft);border-color:#F4DFB4}.chip.alt b{color:#B47611}
+.rows{display:flex;flex-direction:column;gap:11px}
+.row{display:flex;flex-direction:column;gap:6px}
+.rcap{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.rn{font-size:13.5px;font-weight:800}
+.rl{font-size:11px;font-weight:700;color:var(--vio);background:var(--vio-soft);border-radius:6px;padding:2px 7px;font-variant-numeric:tabular-nums}
+.rval{display:flex;align-items:center;gap:9px}
+.rb{font-size:14px;font-weight:700;color:var(--dim);font-variant-numeric:tabular-nums}
+.rto{font-size:15px;font-weight:800;color:var(--faint)}
+.cell{min-width:66px;height:46px;padding:0 10px;border-radius:12px;border:1.8px solid var(--line-2);background:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;
+  color:var(--ink);cursor:pointer;box-shadow:var(--shadow);transition:.12s}
+.cell.blank{border-style:dashed;border-color:#B6C2D6;color:#C2CCDB}
+.cell.blank::after{content:"?"}
+.cell.sel{border-color:var(--vio);color:var(--vio);background:var(--vio-soft);box-shadow:0 0 0 3px rgba(124,58,237,.18);transform:scale(1.04)}
+.cell.correct{border-color:var(--emerald);background:var(--emerald-soft);color:#0B7A57}
+.cell.bad{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+.cell.bump{animation:bump .18s ease}@keyframes bump{50%{transform:scale(1.12)}}
+.rcu{font-size:13px;font-weight:700;color:var(--dim)}
+.why{font-size:11.5px;line-height:1.5;color:var(--dim);font-weight:600;margin-top:13px;padding-top:11px;border-top:1px solid var(--line)}
+
+.helper{min-height:30px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:12.5px;color:var(--dim);font-weight:700;padding:0 6px;margin-bottom:8px;line-height:1.3}
+.helper b{color:var(--ink);font-weight:800}
+.actions{display:flex;gap:8px;margin-bottom:9px}
+.actions button{flex:1;border:1px solid var(--line-2);background:var(--card);color:var(--ink);font-family:inherit;
+  font-size:13.5px;font-weight:700;padding:11px 0;border-radius:13px;cursor:pointer;box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:center;gap:6px;transition:.12s}
+.actions button:active{transform:translateY(1px)}.actions button svg{width:16px;height:16px}
+.actions button.on{background:var(--vio);color:#fff;border-color:transparent}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.pad button{border:1px solid var(--line-2);background:var(--card);color:var(--ink);font-family:inherit;
+  font-size:22px;font-weight:700;padding:13px 0;border-radius:15px;cursor:pointer;box-shadow:var(--shadow);font-variant-numeric:tabular-nums;transition:.1s}
+.pad button:active{transform:translateY(1px);background:#F1F5FB}
+.pad button.util{font-size:15px;color:var(--dim);display:flex;align-items:center;justify-content:center}
+.pad button.util svg{width:22px;height:22px}
+button:focus-visible,.cell:focus-visible,.back:focus-visible,.iconbtn:focus-visible,.seg button:focus-visible{outline:3px solid rgba(124,58,237,.4);outline-offset:2px}
+
+.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(22,38,59,.45);backdrop-filter:blur(3px);z-index:20;padding:22px}
+.ov.show{display:flex}
+.sheet{background:var(--card);border-radius:24px;padding:26px 22px;max-width:360px;width:100%;box-shadow:var(--shadow-lg);text-align:center;max-height:84vh;overflow-y:auto}
+.sheet h2{font-size:22px;font-weight:800;margin-bottom:6px;letter-spacing:-.01em}
+.sheet p{color:var(--dim);font-size:13.5px;line-height:1.5;margin-bottom:20px;font-weight:600}
+.sheet .cta{width:100%;border:none;background:var(--vio);color:#fff;font-family:inherit;font-size:15px;font-weight:700;padding:14px;border-radius:14px;cursor:pointer}
+.sheet .ghost{width:100%;border:none;background:transparent;color:var(--dim);font-family:inherit;font-size:13px;font-weight:700;padding:12px 0 0;cursor:pointer}
+.burst{width:80px;height:80px;margin:0 auto 12px;border-radius:99px;background:var(--emerald-soft);display:flex;align-items:center;justify-content:center}
+.burst svg{width:40px;height:40px;color:var(--emerald)}
+@keyframes draw{from{stroke-dashoffset:40}to{stroke-dashoffset:0}}.burst path{stroke-dasharray:40;animation:draw .5s .1s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}.sheet{animation:rise .3s ease both}
+.learn{text-align:left}.learn h2{text-align:left;margin-bottom:6px}.learn .ls{font-size:12px;color:var(--faint);font-weight:700;margin-bottom:16px}
+.lg{margin-bottom:15px}.lg h3{font-size:13px;font-weight:800;color:var(--vio);margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em}
+.lg .law{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.lg .law code{font-size:12.5px;font-weight:800;color:var(--ink);background:#EEF2F9;border-radius:6px;padding:2px 7px;flex:none;font-variant-numeric:tabular-nums}
+.lg .law span{font-size:12px;color:var(--dim);font-weight:600;line-height:1.35}
+.loading{padding:40px 0;text-align:center;color:var(--faint);font-size:13px;font-weight:700;letter-spacing:.04em}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <a class="back" href="../index.html" aria-label="Back to Puzzle Lab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </a>
+    <div class="title"><h1>Scale-Up</h1><div class="sub">SCALING LAWS · rpm · kW · m³</div></div>
+    <button class="iconbtn" id="helpBtn" aria-label="Laws">?</button>
+    <button class="iconbtn" id="newBtn" aria-label="New puzzle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+    </button>
+  </div>
+
+  <div class="seg" id="seg">
+    <button data-tier="affinity" class="active">Affinity</button>
+    <button data-tier="scale">Scale</button>
+    <button data-tier="similarity">Similarity</button>
+  </div>
+
+  <div class="prog">
+    <div class="track"><div class="fill" id="fill"></div></div>
+    <div class="pcount"><b id="pdone">0</b> / <span id="ptot">0</span> solved</div>
+  </div>
+
+  <div class="board" id="board"><div class="loading">SETTING THE DUTY…</div></div>
+
+  <div class="helper" id="helper">Tap a box, then apply the law.</div>
+
+  <div class="actions">
+    <button id="undoBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>Undo</button>
+    <button id="hintBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>Hint</button>
+    <button id="checkBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Check</button>
+  </div>
+
+  <div class="pad" id="pad">
+    <button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button>
+    <button data-n="4">4</button><button data-n="5">5</button><button data-n="6">6</button>
+    <button data-n="7">7</button><button data-n="8">8</button><button data-n="9">9</button>
+    <button class="util" id="clrBtn">clear</button>
+    <button data-n="0">0</button>
+    <button class="util" id="bsBtn" aria-label="Backspace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H8L2 12l6 7h13a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M16 9l-5 6M11 9l5 6"/></svg></button>
+  </div>
+</div>
+
+<div class="ov" id="winOv"><div class="sheet">
+  <div class="burst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+  <h2>Duty matched</h2>
+  <p id="winText"></p>
+  <button class="cta" id="nextBtn">Next problem</button>
+  <button class="ghost" id="homeBtn">Back to Lab</button>
+</div></div>
+
+<div class="ov" id="learnOv"><div class="sheet learn">
+  <h2>Scaling laws</h2>
+  <div class="ls" id="learnSub">Affinity</div>
+  <div id="learnBody"></div>
+  <button class="cta" id="learnClose">Got it</button>
+</div></div>
+
+<script>
+(() => {
+"use strict";
+const rnd=n=>Math.floor(Math.random()*n), pick=a=>a[rnd(a.length)];
+const fnum=x=>{const r=Math.round(x*100)/100;return Number.isInteger(r)?r:r;};
+const fac=x=>Number.isInteger(x)?(""+x):(""+x);
+
+/* ===== TEMPLATES — each gen() returns a scenario card with integer answers ===== */
+const TPL=[
+/* ----- AFFINITY ----- */
+{ id:"pumpN", tier:"affinity",
+  gen(){const k=pick([2,3]);const N1=pick([1450,1500,1000,1200,960]);
+    const Q1=pick([60,80,100,120,150]),H1=pick([20,25,30,40,50]),P1=pick([2,3,4,5,6]);
+    return{icon:"pump",unit:"Centrifugal pump",
+      change:[{label:"Speed",factor:k,from:N1,to:N1*k,unit:"rpm"}],
+      rows:[{name:"Flow Q",unit:"m³/h",base:Q1,ans:Q1*k,law:"Q ∝ N"},
+            {name:"Head H",unit:"m",base:H1,ans:H1*k*k,law:"H ∝ N²"},
+            {name:"Power P",unit:"kW",base:P1,ans:P1*k**3,law:"P ∝ N³"}],
+      why:"Speed up a centrifugal pump and flow tracks speed, head its square, power its cube — which is why a small speed trim saves a lot of power."};} },
+
+{ id:"pumpD", tier:"affinity",
+  gen(){const k=pick([2,3]);const D1=pick([150,175,200,250]);
+    const Q1=pick([5,8,10,12,15]),H1=pick([10,15,20,30]),P1=pick([1,2]);
+    return{icon:"pump",unit:"Geometrically similar pump",
+      change:[{label:"Size D",factor:k,from:D1,to:D1*k,unit:"mm"}],
+      rows:[{name:"Flow Q",unit:"m³/h",base:Q1,ans:Q1*k**3,law:"Q ∝ D³"},
+            {name:"Head H",unit:"m",base:H1,ans:H1*k*k,law:"H ∝ D²"},
+            {name:"Power P",unit:"kW",base:P1,ans:P1*k**5,law:"P ∝ D⁵"}],
+      why:"Across a geometrically similar pump family at fixed speed, flow scales with size cubed and power with the fifth power — size buys capacity but costs power fast."};} },
+
+/* ----- SCALE (Σ, τ) ----- */
+{ id:"sigma", tier:"scale",
+  gen(){const c=pick([[2,1.5],[2,2],[3,2]]);const a=c[0],b=c[1];const fb=b*b,fq=a*fb;
+    const Q1=pick([100,200,300,400]),G1=pick([2000,3000,4000]);
+    return{icon:"centri",unit:"Disc-stack centrifuge",
+      change:[{label:"Discs",factor:a},{label:"Speed",factor:b}],
+      rows:[{name:"Throughput Q",unit:"L/h",base:Q1,ans:Q1*fq,law:"Q ∝ Σ ∝ discs·N²"},
+            {name:"g-force",unit:"× g",base:G1,ans:G1*fb,law:"RCF ∝ N²"}],
+      why:"Equivalent settling area Σ sets capacity. More discs and faster spin both raise Σ — and speed counts twice — so throughput climbs as discs × N²."};} },
+
+{ id:"tau", tier:"scale",
+  gen(){const c=pick([[4,2],[6,2],[6,3],[4,4],[2,2]]);const a=c[0],b=c[1];const ft=a/b,fs=b/a;
+    const T1=pick([10,15,20,30]);
+    const S1=(fs===0.5)?pick([6,8,12]):(Math.abs(fs-1/3)<1e-9?pick([6,9,12]):pick([4,6,8,12]));
+    return{icon:"reactor",unit:"Stirred reactor",
+      change:[{label:"Volume",factor:a},{label:"Feed",factor:b}],
+      rows:[{name:"Residence time τ",unit:"min",base:T1,ans:T1*ft,law:"τ = V / Q"},
+            {name:"Space velocity",unit:"1/h",base:S1,ans:S1*fs,law:"SV = Q/V = 1/τ"}],
+      why:"Residence time is volume over flow. Scale vessel and feed together and τ moves only with their ratio; space velocity is simply its inverse."};} },
+
+{ id:"discsInv", tier:"scale",
+  gen(){const m=pick([2,3]);const D1=pick([30,40,50,60,80]);
+    return{icon:"centri",unit:"Disc-stack centrifuge",inverse:true,
+      change:[{label:"Need throughput",factor:m,text:"× "+m+" at same speed"}],
+      rows:[{name:"Discs required",unit:"discs",base:D1,ans:D1*m,law:"Q ∝ discs (Σ)"}],
+      why:"At a fixed speed, throughput rides on Σ, which is proportional to disc count — so to pass "+m+"× the feed you fit "+m+"× the discs."};} },
+
+/* ----- SIMILARITY ----- */
+{ id:"geom", tier:"similarity",
+  gen(){const k=pick([2,3]);const D1=pick([0.5,1,1.5,2]);
+    const V1=pick([5,10,20]),A1=pick([4,8,12]),S1=(k===2)?pick([6,8,12]):pick([6,9,12]);
+    return{icon:"vessel",unit:"Process vessel",
+      change:[{label:"Diameter",factor:k,from:D1,to:+(D1*k).toFixed(1),unit:"m"}],
+      rows:[{name:"Volume",unit:"m³",base:V1,ans:V1*k**3,law:"V ∝ D³"},
+            {name:"Jacket area",unit:"m²",base:A1,ans:A1*k*k,law:"A ∝ D²"},
+            {name:"Area / volume",unit:"1/m",base:S1,ans:S1/k,law:"A/V ∝ 1/D"}],
+      why:"Volume grows with the cube of size but heat-transfer area only the square, so the area-to-volume ratio falls as 1/D. That is why big reactors are hard to cool."};} },
+
+{ id:"crit", tier:"similarity",
+  gen(){const k=pick([2,3]);const crit=pick(["tip","re","pv"]);let rows,why,name;
+    if(crit==="tip"){name="constant tip speed";
+      const Nb=(k===2)?pick([120,180,240,300]):pick([180,240,360]);const Pb=pick([4,6,8,12,16]);
+      rows=[{name:"Impeller speed",unit:"rpm",base:Nb,ans:Nb/k,law:"v_tip const ⇒ N ∝ 1/D"},
+            {name:"Power",unit:"kW",base:Pb,ans:Pb*k*k,law:"P ∝ D²"}];
+      why="Holding tip speed (shear) constant, the impeller must slow as 1/D, yet power still climbs with D². Use it when the broth is shear-sensitive.";
+    }else if(crit==="re"){name="constant Reynolds number";
+      const Nb=(k===2)?pick([120,160,240,320]):pick([180,270,360]);const Pb=(k===2)?pick([8,12,16,24]):pick([12,18,24,36]);
+      rows=[{name:"Impeller speed",unit:"rpm",base:Nb,ans:Nb/(k*k),law:"Re const ⇒ N ∝ 1/D²"},
+            {name:"Power",unit:"kW",base:Pb,ans:Pb/k,law:"P ∝ 1/D"}];
+      why="Holding Reynolds number constant collapses speed as 1/D² and even drops power — rarely reachable at scale, but it keeps the flow regime identical.";
+    }else{name="constant power / volume";
+      const Pb=pick([4,6,8,12]);
+      rows=[{name:"Power",unit:"kW",base:Pb,ans:Pb*k**3,law:"P/V const ⇒ P ∝ V ∝ D³"}];
+      why="Holding power per volume — the usual mass-transfer criterion — means total power scales with volume, D³. It is the default for aerobic and blending duties.";
+    }
+    return{icon:"vessel",unit:"Stirred-tank scale-up",change:[{label:"Diameter",factor:k},{label:"Hold",text:name}],rows,why};} },
+
+{ id:"powerCap", tier:"similarity",
+  gen(){const m=pick([8,27]);const root=Math.round(Math.cbrt(m));const N1=pick([1000,1200,1500]);const P1=pick([2,3,4]);
+    return{icon:"pump",unit:"Pump within a power limit",inverse:true,
+      change:[{label:"Power ceiling",text:P1+" → "+(P1*m)+" kW (×"+m+")"}],
+      rows:[{name:"Max speed",unit:"rpm",base:N1,ans:N1*root,law:"P ∝ N³ ⇒ N ∝ ∛P"}],
+      why:"Power is the cube of speed, so ×"+m+" of power head-room only buys ×"+root+" in speed — the inverse cube bites hard."};} },
+];
+
+const LEARN={
+ affinity:["Affinity laws — speed & size",[
+   ["Q ∝ N","Flow tracks pump/fan speed."],["H ∝ N²","Head rises with the square of speed."],
+   ["P ∝ N³","Power with the cube — the big lever."],["Q ∝ D³, P ∝ D⁵","Geometrically similar machines at fixed speed."]]],
+ scale:["Throughput — Σ and τ",[
+   ["Q ∝ Σ","Centrifuge capacity follows equivalent area Σ."],["Σ ∝ discs·N²","More discs, faster spin — speed counts twice."],
+   ["RCF ∝ N²","g-force is speed squared."],["τ = V/Q","Residence time; SV = Q/V is its inverse."]]],
+ similarity:["Similarity — geometry & criteria",[
+   ["V ∝ D³, A ∝ D²","Volume cubes, area squares…"],["A/V ∝ 1/D","…so cooling per litre falls with size."],
+   ["tip: N ∝ 1/D","Constant tip speed (shear)."],["Re: N ∝ 1/D²","Constant Reynolds (regime)."],
+   ["P/V: P ∝ D³","Constant power/volume (mass transfer)."]]],
+};
+
+const ICON={
+ pump:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="6"/><path d="M12 13l3-3"/><path d="M12 7V3h5"/><path d="M3 13H1"/></svg>',
+ centri:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-2 4H6z"/><path d="M12 9v7"/><path d="M8 20a4 4 0 0 1 8 0"/></svg>',
+ reactor:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="6" width="14" height="14" rx="4"/><path d="M9 3v3M15 3v3"/><path d="M9 13c1.5-2 4.5 2 6 0"/></svg>',
+ vessel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12"/><path d="M7 4v12a5 5 0 0 0 10 0V4"/><path d="M12 9v7"/></svg>',
+};
+
+const board=document.getElementById("board");
+let PUZZLE=[],ANS={},player={},selected=null,checkOn=false,finished=false,startTime=0;
+
+function chipHTML(c){
+  if(c.text&&c.factor!==undefined) return `<span class="chip"><b>×${fac(c.factor)}</b>${c.label}: ${c.text}</span>`;
+  if(c.text) return `<span class="chip alt"><b>${c.label}</b>${c.text}</span>`;
+  let s=`<span class="chip"><b>×${fac(c.factor)}</b>${c.label}`;
+  if(c.from!==undefined) s+=` · ${c.from}→${c.to} ${c.unit}`;
+  return s+`</span>`;
+}
+function build(){
+  board.innerHTML="";
+  const stack=document.createElement("div");stack.className="stack";
+  PUZZLE.forEach((p,ci)=>{
+    const card=document.createElement("div");card.className="card";card.dataset.c=ci;
+    let h=`<div class="hd"><div class="ic">${ICON[p.icon]}</div><div class="nm">${p.unit}</div>`
+      +`<div class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div></div>`;
+    h+=`<div class="chips">${p.change.map(chipHTML).join("")}</div><div class="rows">`;
+    p.rows.forEach((r,ri)=>{const key=ci+"_"+ri;
+      h+=`<div class="row"><div class="rcap"><span class="rn">${r.name}</span><span class="rl">${r.law}</span></div>`
+        +`<div class="rval"><span class="rb">${r.base} ${r.unit}</span><span class="rto">→</span>`
+        +`<div class="cell" data-key="${key}" tabindex="0"></div><span class="rcu">${r.unit}</span></div></div>`;});
+    h+=`</div><div class="why">${p.why}</div>`;
+    card.innerHTML=h;stack.appendChild(card);
+  });
+  board.appendChild(stack);
+  board.querySelectorAll(".cell").forEach(el=>{
+    el.addEventListener("click",()=>selectCell(el.dataset.key));
+    el.addEventListener("keydown",ev=>{if(/^[0-9]$/.test(ev.key)){selectCell(el.dataset.key);typeDigit(+ev.key);}
+      if(ev.key==="Backspace"||ev.key==="Delete"){selectCell(el.dataset.key);backspace();}});});
+  refresh();
+}
+function refresh(){
+  let correct=0,total=0;
+  board.querySelectorAll(".cell").forEach(el=>{const k=el.dataset.key,v=player[k],ok=(v!==undefined&&v===ANS[k]);
+    total++;if(ok)correct++;
+    el.className="cell"+(v===undefined?" blank":(ok?" correct":(checkOn?" bad":"")));
+    if(k===selected&&!ok)el.classList.add("sel");
+    el.textContent=v===undefined?"":v;});
+  PUZZLE.forEach((p,ci)=>{const card=board.querySelector(`.card[data-c="${ci}"]`);if(!card)return;
+    const done=p.rows.every((r,ri)=>player[ci+"_"+ri]===ANS[ci+"_"+ri]);
+    card.classList.toggle("done",done);});
+  document.getElementById("pdone").textContent=correct;
+  document.getElementById("ptot").textContent=total;
+  document.getElementById("fill").style.width=(total?correct/total*100:0)+"%";
+  if(correct===total&&total>0&&!finished)win();
+}
+function selectCell(k){selected=k;const el=board.querySelector(`.cell[data-key="${k}"]`);
+  if(el&&player[k]===ANS[k]){selected=null;}else{
+    const[ci,ri]=k.split("_").map(Number);const r=PUZZLE[ci].rows[ri];
+    document.getElementById("helper").innerHTML=`<b>${r.name}</b> · apply <b>${r.law}</b> to ${r.base} ${r.unit}`;}
+  refresh();}
+function bump(k){const el=board.querySelector(`.cell[data-key="${k}"]`);if(el){el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump");}}
+function flash(m){const h=document.getElementById("helper"),p=h.innerHTML;h.textContent=m;setTimeout(()=>{if(h.textContent===m)h.innerHTML=p;},1200);}
+function typeDigit(d){if(selected===null){flash("Tap a box first.");return;}if(finished)return;
+  const cur=player[selected]===undefined?"":String(player[selected]);if(cur.length>=5)return;
+  player[selected]=parseInt(cur+d,10);bump(selected);refresh();}
+function backspace(){if(selected===null||finished)return;const cur=player[selected]===undefined?"":String(player[selected]);
+  const nx=cur.slice(0,-1);player[selected]=nx===""?undefined:parseInt(nx,10);refresh();}
+function clearSel(){if(selected===null||finished)return;player[selected]=undefined;refresh();}
+function hint(){if(finished)return;
+  let k=(selected&&player[selected]!==ANS[selected])?selected:null;
+  if(!k)for(const key in ANS)if(player[key]!==ANS[key]){k=key;break;}
+  if(!k)return;player[k]=ANS[k];selected=null;bump(k);refresh();}
+function fmt(s){return((s/60)|0)+":"+String(s%60).padStart(2,"0");}
+function win(){finished=true;const t=fmt(((Date.now()-startTime)/1000)|0);
+  document.getElementById("winText").textContent=`Laws applied cleanly across the duty. Solved in ${t}.`;
+  document.getElementById("winOv").classList.add("show");}
+function newGame(){
+  document.getElementById("winOv").classList.remove("show");
+  board.innerHTML='<div class="loading">SETTING THE DUTY…</div>';
+  const tier=document.querySelector(".seg .active").dataset.tier;
+  setTimeout(()=>{
+    const pool=TPL.filter(t=>t.tier===tier);const chosen=[];
+    const idx=[...pool.keys()];for(let i=idx.length-1;i>0;i--){const j=rnd(i+1);[idx[i],idx[j]]=[idx[j],idx[i]];}
+    const n=Math.min(2,pool.length);for(let i=0;i<n;i++)chosen.push(pool[idx[i]]);
+    while(chosen.length<2)chosen.push(pick(pool));
+    PUZZLE=chosen.map(t=>t.gen());ANS={};
+    PUZZLE.forEach((p,ci)=>p.rows.forEach((r,ri)=>ANS[ci+"_"+ri]=r.ans));
+    player={};selected=null;finished=false;checkOn=false;
+    document.getElementById("checkBtn").classList.remove("on");
+    document.getElementById("helper").textContent="Tap a box, then apply the law.";
+    build();startTime=Date.now();board.scrollTop=0;
+    renderLearn(tier);
+  },20);
+}
+function renderLearn(tier){const L=LEARN[tier];document.getElementById("learnSub").textContent=L[0];
+  document.getElementById("learnBody").innerHTML=`<div class="lg">`+
+    L[1].map(x=>`<div class="law"><code>${x[0]}</code><span>${x[1]}</span></div>`).join("")+`</div>`;}
+
+document.getElementById("seg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll(".seg button").forEach(x=>x.classList.remove("active"));b.classList.add("active");newGame();});
+document.getElementById("newBtn").addEventListener("click",newGame);
+document.getElementById("nextBtn").addEventListener("click",newGame);
+document.getElementById("homeBtn").addEventListener("click",()=>location.href="../index.html");
+document.getElementById("undoBtn").addEventListener("click",()=>{ // undo = clear current
+  if(selected&&player[selected]!==undefined&&player[selected]!==ANS[selected]){player[selected]=undefined;refresh();}});
+document.getElementById("hintBtn").addEventListener("click",hint);
+document.getElementById("bsBtn").addEventListener("click",backspace);
+document.getElementById("clrBtn").addEventListener("click",clearSel);
+document.getElementById("checkBtn").addEventListener("click",e=>{checkOn=!checkOn;e.currentTarget.classList.toggle("on",checkOn);refresh();});
+document.querySelectorAll(".pad button[data-n]").forEach(b=>b.addEventListener("click",()=>typeDigit(+b.dataset.n)));
+document.getElementById("helpBtn").addEventListener("click",()=>document.getElementById("learnOv").classList.add("show"));
+document.getElementById("learnClose").addEventListener("click",()=>document.getElementById("learnOv").classList.remove("show"));
+document.querySelectorAll(".ov").forEach(o=>o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("show");}));
+document.addEventListener("keydown",e=>{if(e.target.closest(".cell"))return;
+  if(/^[0-9]$/.test(e.key))typeDigit(+e.key);if(e.key==="Backspace"){e.preventDefault();backspace();}});
+
+/* headless export for tests */
+if(typeof module!=="undefined"){module.exports={TPL};}
+newGame();
+})();
+</script>
+</body>
+</html>

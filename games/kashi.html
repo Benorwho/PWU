@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="theme-color" content="#0E1F38">
+<link rel="apple-touch-icon" href="../icons/icon-192.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kashi — Garden Mosaic Puzzle</title>
+<style>
+:root{
+  --ink:#0E1F38;          /* night cobalt background */
+  --ink-2:#16294a;
+  --grout:#0A1830;        /* deep grout between tiles */
+  --cream:#F2E9D8;        /* glazed cream */
+  --turquoise:#2BB3A3;
+  --saffron:#E8A33D;
+  --clay:#C96F5C;
+  --lapis:#3D6CB0;
+  --text:#EAE2D2;
+  --text-dim:#9FAEC6;
+  --good:#5BC489;
+  --bad:#E0644F;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--ink);
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(61,108,176,.18), transparent 45%),
+    radial-gradient(circle at 90% 100%, rgba(43,179,163,.10), transparent 50%);
+  color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100%;
+  padding:14px 12px 28px;
+}
+header{width:100%;max-width:480px;text-align:center;margin-bottom:10px}
+.star{display:inline-block;width:26px;height:26px;vertical-align:-5px;margin-right:8px}
+h1{
+  font-family:Palatino,"Palatino Linotype","Book Antiqua",Georgia,serif;
+  font-weight:600;font-size:clamp(26px,7vw,34px);
+  letter-spacing:.12em;color:var(--cream);
+}
+.tagline{color:var(--text-dim);font-size:12.5px;margin-top:4px;letter-spacing:.04em}
+
+.bar{
+  width:100%;max-width:480px;display:flex;gap:8px;align-items:center;
+  justify-content:space-between;margin:8px 0 12px;flex-wrap:wrap;
+}
+select,button{
+  font:inherit;color:var(--text);background:var(--ink-2);
+  border:1px solid rgba(242,233,216,.18);border-radius:10px;
+  padding:8px 12px;cursor:pointer;font-size:14px;
+}
+select:focus-visible,button:focus-visible,.cell:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--turquoise);color:#08231F;border-color:transparent;font-weight:600}
+button.toggled{background:var(--saffron);color:#3A2606;border-color:transparent;font-weight:600}
+.stats{width:100%;max-width:480px;display:flex;justify-content:space-between;color:var(--text-dim);font-size:13px;margin-bottom:8px;padding:0 2px}
+.stats b{color:var(--cream);font-weight:600}
+
+#board{
+  display:grid;gap:0;background:var(--grout);
+  border:6px solid var(--grout);border-radius:14px;
+  box-shadow:0 12px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(242,233,216,.06);
+  touch-action:manipulation;user-select:none;
+  width:min(94vw,480px);
+}
+.cell{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  aspect-ratio:1/1;cursor:pointer;
+  font-family:Palatino,"Palatino Linotype",Georgia,serif;
+  font-size:clamp(18px,5.4vw,30px);
+  color:#10243E;
+  transition:filter .12s ease, box-shadow .12s ease;
+}
+.cell.given{font-weight:700}
+.cell.entered{color:#0d3b35;font-weight:600}
+.cell.selected{box-shadow:inset 0 0 0 3px var(--saffron);z-index:2}
+.cell.peer{filter:brightness(1.08)}
+.cell.conflict{box-shadow:inset 0 0 0 3px var(--bad);z-index:2}
+.cell.conflict .val{color:var(--bad)}
+.cell.hinted .val{color:#7A4A12}
+.cell .val{pointer-events:none}
+.notes{
+  position:absolute;inset:6%;display:grid;
+  grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);
+  font-size:clamp(8px,2.2vw,12px);font-family:system-ui,sans-serif;
+  color:rgba(14,31,56,.65);pointer-events:none;
+}
+.notes span{display:flex;align-items:center;justify-content:center}
+
+.pad{
+  width:100%;max-width:480px;display:grid;grid-template-columns:repeat(7,1fr);
+  gap:8px;margin-top:14px;
+}
+.pad button{
+  aspect-ratio:1/1;font-size:20px;border-radius:12px;
+  font-family:Palatino,Georgia,serif;font-weight:600;
+  background:var(--ink-2);min-width:0;padding:0;
+}
+.pad button.num:disabled{opacity:.25;cursor:default}
+.pad button.util{font-size:16px;font-family:system-ui,sans-serif}
+.rules{
+  width:100%;max-width:480px;margin-top:18px;color:var(--text-dim);
+  font-size:13px;line-height:1.55;border-top:1px solid rgba(242,233,216,.12);
+  padding-top:12px;
+}
+.rules b{color:var(--cream)}
+
+#overlay{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  background:rgba(10,24,48,.86);z-index:10;padding:20px;
+}
+#overlay.show{display:flex}
+.card{
+  background:var(--ink-2);border:1px solid rgba(242,233,216,.18);
+  border-radius:18px;padding:34px 30px;text-align:center;max-width:340px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.card h2{font-family:Palatino,Georgia,serif;color:var(--cream);letter-spacing:.08em;font-size:26px;margin:12px 0 6px}
+.card p{color:var(--text-dim);font-size:14px;margin-bottom:18px}
+.bloom{width:90px;height:90px;margin:0 auto}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+.bloom svg{animation:pop .6s ease both}
+.bloom .ring{transform-origin:50% 50%;animation:spin 14s linear infinite}
+@media (prefers-reduced-motion: reduce){
+  .bloom svg,.bloom .ring{animation:none}
+}
+.loading{color:var(--text-dim);font-size:14px;padding:40px;text-align:center}
+</style>
+</head>
+<body>
+<a href="../index.html" style="position:fixed;top:max(10px,env(safe-area-inset-top));left:12px;z-index:50;width:38px;height:38px;border-radius:12px;border:1px solid rgba(242,233,216,.2);background:rgba(22,41,74,.85);display:flex;align-items:center;justify-content:center;text-decoration:none;color:#EAE2D2" aria-label="Back to Puzzle Lab"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></a>
+
+<header>
+  <h1><span class="star"><svg viewBox="0 0 100 100" fill="none"><path d="M50 2 L61 39 L98 50 L61 61 L50 98 L39 61 L2 50 L39 39 Z" fill="#E8A33D"/><path d="M50 22 L57 43 L78 50 L57 57 L50 78 L43 57 L22 50 L43 43 Z" fill="#2BB3A3"/></svg></span>KASHI</h1>
+  <div class="tagline">A garden of numbers, laid tile by tile</div>
+</header>
+
+<div class="bar">
+  <select id="size" aria-label="Puzzle size">
+    <option value="6">Courtyard · 6×6</option>
+    <option value="7" selected>Garden · 7×7</option>
+    <option value="8">Palace · 8×8</option>
+  </select>
+  <button id="newBtn" class="primary">New puzzle</button>
+  <button id="conflictBtn" title="Highlight clashing tiles">Show clashes</button>
+</div>
+
+<div class="stats">
+  <span>Time <b id="timer">0:00</b></span>
+  <span>Tiles left <b id="left">–</b></span>
+</div>
+
+<div id="board" role="grid" aria-label="Puzzle board"><div class="loading">Laying the tiles…</div></div>
+
+<div class="pad" id="pad">
+  <button class="num" data-n="1">1</button>
+  <button class="num" data-n="2">2</button>
+  <button class="num" data-n="3">3</button>
+  <button class="num" data-n="4">4</button>
+  <button class="num" data-n="5">5</button>
+  <button class="util" id="eraseBtn" title="Erase">⌫</button>
+  <button class="util" id="pencilBtn" title="Pencil notes">✎</button>
+</div>
+
+<div class="bar" style="margin-top:12px">
+  <button id="undoBtn">Undo</button>
+  <button id="hintBtn">Hint</button>
+</div>
+
+<div class="rules">
+  <b>How to lay the garden:</b> the board is divided into glazed plots (the coloured patches).
+  A plot of <b>n</b> tiles holds the numbers <b>1 to n</b>, each exactly once.
+  And the gardener's rule: <b>identical numbers may never touch</b> — not even diagonally.
+  No rows, no columns, no boxes. This is not sudoku; the plots and the touch rule do all the work.
+  <br><br>Tap a tile, then a number. ✎ writes small pencil notes. Works fully offline — save this file and play anywhere, even on the Tube.
+</div>
+
+<div id="overlay">
+  <div class="card">
+    <div class="bloom">
+      <svg viewBox="0 0 100 100" fill="none">
+        <g class="ring"><path d="M50 2 L61 39 L98 50 L61 61 L50 98 L39 61 L2 50 L39 39 Z" fill="#E8A33D"/></g>
+        <path d="M50 22 L57 43 L78 50 L57 57 L50 78 L43 57 L22 50 L43 43 Z" fill="#2BB3A3"/>
+        <circle cx="50" cy="50" r="9" fill="#F2E9D8"/>
+      </svg>
+    </div>
+    <h2>The garden blooms</h2>
+    <p id="winText"></p>
+    <button class="primary" id="againBtn">Plant another</button>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* ---------- helpers ---------- */
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ---------- puzzle model ----------
+   Suguru-style: grid split into cages (plots) of size 1–5.
+   Cage of size n contains 1..n once each.
+   Equal numbers never touch, including diagonally.       */
+
+let W = 7, H = 7;
+let cageOf = [];      // cell index -> cage id
+let cages = [];       // cage id -> [cell indices]
+let solution = [];    // cell -> value
+let given = [];       // cell -> bool
+let values = [];      // cell -> 0 or value
+let notes = [];       // cell -> Set of numbers
+let selected = -1;
+let undoStack = [];
+let showClash = false;
+let pencil = false;
+let startTime = 0, timerId = null, finished = false;
+
+const N8 = (i) => {
+  const x = i % W, y = (i / W) | 0, out = [];
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+    if (!dx && !dy) continue;
+    const nx = x + dx, ny = y + dy;
+    if (nx >= 0 && nx < W && ny >= 0 && ny < H) out.push(ny * W + nx);
+  }
+  return out;
+};
+const N4 = (i) => {
+  const x = i % W, y = (i / W) | 0, out = [];
+  if (x > 0) out.push(i - 1);
+  if (x < W - 1) out.push(i + 1);
+  if (y > 0) out.push(i - W);
+  if (y < H - 1) out.push(i + W);
+  return out;
+};
+
+/* ---------- cage partition ---------- */
+function makeCages() {
+  const total = W * H;
+  cageOf = new Array(total).fill(-1);
+  cages = [];
+  const order = shuffle([...Array(total).keys()]);
+  for (const seed of order) {
+    if (cageOf[seed] !== -1) continue;
+    const target = [3, 4, 4, 4, 5, 5, 5][rnd(7)];
+    const id = cages.length;
+    const region = [seed];
+    cageOf[seed] = id;
+    while (region.length < target) {
+      const cand = [];
+      for (const c of region) for (const n of N4(c)) if (cageOf[n] === -1) cand.push(n);
+      if (!cand.length) break;
+      const pick = cand[rnd(cand.length)];
+      cageOf[pick] = id;
+      region.push(pick);
+    }
+    cages.push(region);
+  }
+  // absorb tiny plots (size 1-2) into a neighbouring plot when possible
+  for (let id = 0; id < cages.length; id++) {
+    if (cages[id].length > 2 || !cages[id].length) continue;
+    for (const c of cages[id].slice()) {
+      let best = -1;
+      for (const n of N4(c)) {
+        const nid = cageOf[n];
+        if (nid !== id && cages[nid].length && cages[nid].length < 5 &&
+            (best === -1 || cages[nid].length < cages[best].length)) best = nid;
+      }
+      if (best !== -1) {
+        cages[best].push(c); cageOf[c] = best;
+        cages[id] = cages[id].filter(x => x !== c);
+      }
+    }
+  }
+  // compact ids
+  const map = new Map(); const newCages = [];
+  for (let i = 0; i < cages.length; i++) if (cages[i].length) { map.set(i, newCages.length); newCages.push(cages[i]); }
+  cages = newCages;
+  for (let c = 0; c < total; c++) cageOf[c] = map.get(cageOf[c]);
+}
+
+/* ---------- fill solution by backtracking (MRV) ---------- */
+function fillSolution() {
+  const total = W * H;
+  const grid = new Array(total).fill(0);
+  const cageUsed = cages.map(() => new Set());
+  let nodes = 0; const LIMIT = 200000;
+  function cand(i) {
+    const cid = cageOf[i], size = cages[cid].length, out = [];
+    for (let v = 1; v <= size; v++) {
+      if (cageUsed[cid].has(v)) continue;
+      let ok = true;
+      for (const n of N8(i)) if (grid[n] === v) { ok = false; break; }
+      if (ok) out.push(v);
+    }
+    return out;
+  }
+  function bt(filled) {
+    if (filled === total) return true;
+    if (++nodes > LIMIT) return false;
+    let best = -1, bestC = null;
+    for (let i = 0; i < total; i++) {
+      if (grid[i]) continue;
+      const c = cand(i);
+      if (!c.length) return false;
+      if (bestC === null || c.length < bestC.length) { best = i; bestC = c; if (c.length === 1) break; }
+    }
+    shuffle(bestC);
+    const cid = cageOf[best];
+    for (const v of bestC) {
+      grid[best] = v; cageUsed[cid].add(v);
+      if (bt(filled + 1)) return true;
+      grid[best] = 0; cageUsed[cid].delete(v);
+    }
+    return false;
+  }
+  return bt(0) ? grid : null;
+}
+
+/* ---------- solution counter (capped) ---------- */
+function countSolutions(puz, cap) {
+  const total = W * H;
+  const grid = puz.slice();
+  const cageUsed = cages.map(() => new Set());
+  for (let i = 0; i < total; i++) if (grid[i]) cageUsed[cageOf[i]].add(grid[i]);
+  let count = 0;
+  function candidates(i) {
+    const cid = cageOf[i], size = cages[cid].length, out = [];
+    for (let v = 1; v <= size; v++) {
+      if (cageUsed[cid].has(v)) continue;
+      let ok = true;
+      for (const n of N8(i)) if (grid[n] === v) { ok = false; break; }
+      if (ok) out.push(v);
+    }
+    return out;
+  }
+  function bt() {
+    if (count >= cap) return;
+    let best = -1, bestC = null;
+    for (let i = 0; i < total; i++) {
+      if (grid[i]) continue;
+      const c = candidates(i);
+      if (c.length === 0) return;
+      if (bestC === null || c.length < bestC.length) { best = i; bestC = c; if (c.length === 1) break; }
+    }
+    if (best === -1) { count++; return; }
+    const cid = cageOf[best];
+    for (const v of bestC) {
+      grid[best] = v; cageUsed[cid].add(v);
+      bt();
+      grid[best] = 0; cageUsed[cid].delete(v);
+      if (count >= cap) return;
+    }
+  }
+  bt();
+  return count;
+}
+
+/* ---------- generate puzzle ---------- */
+function generate() {
+  const total = W * H;
+  let sol = null;
+  for (let tries = 0; tries < 200 && !sol; tries++) { makeCages(); sol = fillSolution(); }
+  if (!sol) { makeCages(); sol = fillSolution(); } // near-impossible fallback
+  solution = sol;
+  const puz = sol.slice();
+  const removable = shuffle([...Array(total).keys()]);
+  const budget = Date.now() + (W >= 8 ? 2600 : 1800);
+  const floor = Math.ceil(total * (W === 6 ? 0.30 : W === 7 ? 0.26 : 0.22));
+  let givensLeft = total;
+  // singleton plots stay as givens (their value is forced anyway)
+  for (const i of removable) {
+    if (Date.now() > budget || givensLeft <= floor) break;
+    if (cages[cageOf[i]].length === 1) continue;
+    const keep = puz[i];
+    puz[i] = 0;
+    if (countSolutions(puz, 2) !== 1) puz[i] = keep; else givensLeft--;
+  }
+  values = puz.slice();
+  given = puz.map(v => v !== 0);
+  notes = Array.from({ length: total }, () => new Set());
+  undoStack = [];
+  selected = -1;
+  finished = false;
+}
+
+/* ---------- rendering ---------- */
+const board = document.getElementById("board");
+const CAGE_COLORS = [
+  "#F2E9D8", /* glazed cream  */
+  "#BFE3DC", /* pale turquoise*/
+  "#F4D9A6", /* saffron milk  */
+  "#E8C4B4", /* clay rose     */
+  "#C9D9F0", /* lapis mist    */
+  "#D8E8C2"  /* spring reed   */
+];
+
+function cageColor(id) {
+  // greedy colouring so neighbouring plots differ
+  return cageColorCache[id];
+}
+let cageColorCache = [];
+function colourCages() {
+  cageColorCache = new Array(cages.length).fill(-1);
+  for (let id = 0; id < cages.length; id++) {
+    const taken = new Set();
+    for (const c of cages[id]) for (const n of N4(c)) {
+      const nid = cageOf[n];
+      if (nid !== id && cageColorCache[nid] !== -1) taken.add(cageColorCache[nid] % CAGE_COLORS.length);
+    }
+    let pick = 0;
+    while (taken.has(pick % CAGE_COLORS.length) && pick < CAGE_COLORS.length) pick++;
+    cageColorCache[id] = pick % CAGE_COLORS.length;
+  }
+  cageColorCache = cageColorCache.map(i => CAGE_COLORS[i]);
+}
+
+function buildBoard() {
+  colourCages();
+  board.innerHTML = "";
+  board.style.gridTemplateColumns = `repeat(${W},1fr)`;
+  const THIN = "1px solid rgba(10,24,48,.35)";
+  const THICK = "4px solid var(--grout)";
+  for (let i = 0; i < W * H; i++) {
+    const d = document.createElement("div");
+    d.className = "cell";
+    d.dataset.i = i;
+    d.tabIndex = 0;
+    d.setAttribute("role", "gridcell");
+    d.style.background = cageColor(cageOf[i]);
+    const x = i % W, y = (i / W) | 0;
+    d.style.borderTop    = (y === 0            || cageOf[i - W] !== cageOf[i]) ? THICK : THIN;
+    d.style.borderLeft   = (x === 0            || cageOf[i - 1] !== cageOf[i]) ? THICK : THIN;
+    d.style.borderRight  = (x === W - 1)                                        ? THICK : "none";
+    d.style.borderBottom = (y === H - 1)                                        ? THICK : "none";
+    d.addEventListener("click", () => selectCell(i));
+    d.addEventListener("keydown", onCellKey);
+    board.appendChild(d);
+  }
+  refresh();
+}
+
+function refresh() {
+  const cls = clashes();
+  let empty = 0;
+  for (let i = 0; i < W * H; i++) {
+    const d = board.children[i];
+    const v = values[i];
+    if (!v) empty++;
+    d.classList.toggle("given", given[i]);
+    d.classList.toggle("entered", !given[i] && !!v);
+    d.classList.toggle("selected", i === selected);
+    d.classList.toggle("peer", selected !== -1 && i !== selected && cageOf[i] === cageOf[selected]);
+    d.classList.toggle("conflict", showClash && cls.has(i));
+    if (v) {
+      d.innerHTML = `<span class="val">${v}</span>`;
+    } else if (notes[i].size) {
+      d.innerHTML = `<div class="notes">${[1,2,3,4,5].map(n => `<span>${notes[i].has(n) ? n : ""}</span>`).join("")}</div>`;
+    } else d.innerHTML = "";
+  }
+  document.getElementById("left").textContent = empty;
+  // number pad enable/disable by cage size
+  const max = selected === -1 ? 5 : cages[cageOf[selected]].length;
+  document.querySelectorAll(".pad .num").forEach(b => {
+    b.disabled = selected === -1 || given[selected] || +b.dataset.n > max;
+  });
+  if (!empty && cls.size === 0 && !finished) win();
+}
+
+function clashes() {
+  const bad = new Set();
+  for (let i = 0; i < W * H; i++) {
+    const v = values[i];
+    if (!v) continue;
+    for (const n of N8(i)) if (values[n] === v) { bad.add(i); bad.add(n); }
+    for (const c of cages[cageOf[i]]) if (c !== i && values[c] === v) { bad.add(i); bad.add(c); }
+  }
+  return bad;
+}
+
+/* ---------- interaction ---------- */
+function selectCell(i) { selected = i; refresh(); }
+
+function place(n) {
+  if (selected === -1 || given[selected] || finished) return;
+  const i = selected;
+  if (pencil && n) {
+    undoStack.push({ i, v: values[i], notes: new Set(notes[i]) });
+    if (values[i]) return;
+    notes[i].has(n) ? notes[i].delete(n) : notes[i].add(n);
+  } else {
+    undoStack.push({ i, v: values[i], notes: new Set(notes[i]) });
+    values[i] = (values[i] === n) ? 0 : n;
+    if (values[i]) {
+      notes[i].clear();
+      // tidy notes in neighbours and plot
+      for (const nb of N8(i)) notes[nb].delete(n);
+      for (const c of cages[cageOf[i]]) notes[c].delete(n);
+    }
+  }
+  refresh();
+}
+
+function undo() {
+  const m = undoStack.pop();
+  if (!m || finished) return;
+  values[m.i] = m.v;
+  notes[m.i] = m.notes;
+  refresh();
+}
+
+function hint() {
+  if (finished) return;
+  const wrong = [], empty = [];
+  for (let i = 0; i < W * H; i++) {
+    if (given[i]) continue;
+    if (!values[i]) empty.push(i);
+    else if (values[i] !== solution[i]) wrong.push(i);
+  }
+  const pool = wrong.length ? wrong : empty;
+  if (!pool.length) return;
+  const i = pool[rnd(pool.length)];
+  undoStack.push({ i, v: values[i], notes: new Set(notes[i]) });
+  values[i] = solution[i];
+  notes[i].clear();
+  board.children[i].classList.add("hinted");
+  selected = i;
+  refresh();
+}
+
+function onCellKey(e) {
+  const i = +e.currentTarget.dataset.i;
+  const x = i % W, y = (i / W) | 0;
+  let t = null;
+  if (e.key === "ArrowLeft" && x > 0) t = i - 1;
+  if (e.key === "ArrowRight" && x < W - 1) t = i + 1;
+  if (e.key === "ArrowUp" && y > 0) t = i - W;
+  if (e.key === "ArrowDown" && y < H - 1) t = i + W;
+  if (t !== null) { e.preventDefault(); selectCell(t); board.children[t].focus(); return; }
+  if (/^[1-5]$/.test(e.key)) { selectCell(i); place(+e.key); }
+  if (e.key === "Backspace" || e.key === "Delete" || e.key === "0") { selectCell(i); place(0); }
+}
+
+/* ---------- timer & win ---------- */
+function fmt(s) { return `${(s / 60) | 0}:${String(s % 60).padStart(2, "0")}`; }
+function tick() {
+  document.getElementById("timer").textContent = fmt(((Date.now() - startTime) / 1000) | 0);
+}
+function win() {
+  finished = true;
+  clearInterval(timerId);
+  const t = fmt(((Date.now() - startTime) / 1000) | 0);
+  const names = { 6: "courtyard", 7: "garden", 8: "palace" };
+  document.getElementById("winText").textContent =
+    `You tiled the ${names[W]} in ${t}. Every plot complete, no two tiles clashing.`;
+  document.getElementById("overlay").classList.add("show");
+}
+
+/* ---------- new game ---------- */
+function newGame() {
+  document.getElementById("overlay").classList.remove("show");
+  board.innerHTML = '<div class="loading">Laying the tiles…</div>';
+  board.style.gridTemplateColumns = "1fr";
+  W = H = +document.getElementById("size").value;
+  setTimeout(() => {
+    generate();
+    buildBoard();
+    clearInterval(timerId);
+    startTime = Date.now();
+    timerId = setInterval(tick, 1000);
+    tick();
+  }, 30);
+}
+
+/* ---------- wire up ---------- */
+document.getElementById("newBtn").addEventListener("click", newGame);
+document.getElementById("againBtn").addEventListener("click", newGame);
+document.getElementById("size").addEventListener("change", newGame);
+document.getElementById("undoBtn").addEventListener("click", undo);
+document.getElementById("hintBtn").addEventListener("click", hint);
+document.getElementById("eraseBtn").addEventListener("click", () => place(0));
+document.getElementById("pencilBtn").addEventListener("click", e => {
+  pencil = !pencil; e.currentTarget.classList.toggle("toggled", pencil);
+});
+document.getElementById("conflictBtn").addEventListener("click", e => {
+  showClash = !showClash; e.currentTarget.classList.toggle("toggled", showClash); refresh();
+});
+document.querySelectorAll(".pad .num").forEach(b =>
+  b.addEventListener("click", () => place(+b.dataset.n)));
+document.addEventListener("keydown", e => {
+  if (e.target.closest(".cell")) return;
+  if (/^[1-5]$/.test(e.key) && selected !== -1) place(+e.key);
+  if ((e.key === "Backspace" || e.key === "Delete") && selected !== -1) place(0);
+  if (e.key.toLowerCase() === "z" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undo(); }
+});
+
+newGame();
+})();
+</script>
+</body>
+</html>
